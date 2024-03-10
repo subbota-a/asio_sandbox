@@ -39,9 +39,7 @@ jobs:
         generator: Ninja
         c-compiler: gcc
         cxx-compiler: g++
-        options: |
-          CMAKE_PREFIX_PATH=${{github.workspace}}/deps
-          CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}          
+        options: CMAKE_PREFIX_PATH=${{github.workspace}}/deps CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}          
 
     - name: Build
       # Build your program with the given configuration
