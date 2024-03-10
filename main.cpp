@@ -5,13 +5,9 @@
 
 using namespace std::chrono_literals;
 
-class callback_watchdog
-{
+class callback_watchdog {
 public:
-    explicit callback_watchdog(asio::io_context& context)
-        : context_(context)
-    {
-    }
+    explicit callback_watchdog(asio::io_context& context) : context_(context) {}
     void run()
     {
         std::scoped_lock lock(mutex_);
@@ -21,8 +17,7 @@ public:
     {
         std::scoped_lock lock(mutex_);
         cancelled_ = true;
-        if (timer_)
-        {
+        if (timer_) {
             timer_->cancel();
         }
     }
@@ -31,24 +26,20 @@ private:
     void handler(const std::error_code& error_code)
     {
         {
-            // operation might complete successful regardless of cancellation request due to race condition
+            // operation might complete successful regardless of cancellation request
+            // due to race condition
             std::scoped_lock lock(mutex_);
-            if (cancelled_)
-            {
+            if (cancelled_) {
                 std::cout << "Tick_v1 cancelled\n";
                 return;
             }
         }
-        if (!error_code)
-        {
+        if (!error_code) {
             std::cout << "Tick_v1 " << ++i_ << "s" << std::endl;
-            if (i_ < 5)
-            {
+            if (i_ < 5) {
                 run();
             }
-        }
-        else
-        {
+        } else {
             std::cerr << "Tick_v1 " << error_code.message() << '\n';
         }
     }
@@ -64,22 +55,17 @@ private:
 asio::awaitable<void> coroutine_watchdog(std::stop_token stop_token)
 {
     const auto& executor = co_await asio::this_coro::executor;
-    for (int i = 1; i <= 5; ++i)
-    {
+    for (int i = 1; i <= 5; ++i) {
         asio::steady_timer timer(executor, 1s);
         std::stop_callback cancel{stop_token, [&timer] { timer.cancel(); }};
         auto [error_code] = co_await timer.async_wait(asio::as_tuple(asio::use_awaitable));
-        if (stop_token.stop_requested())
-        {
+        if (stop_token.stop_requested()) {
             std::cout << "Tick_v2 cancelled\n";
             break;
         }
-        if (!error_code)
-        {
+        if (!error_code) {
             std::cout << "Tick_v2 " << i << "s" << std::endl;
-        }
-        else
-        {
+        } else {
             std::cerr << "Tick_v1 " << error_code.message() << '\n';
             break;
         }
