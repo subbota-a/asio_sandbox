@@ -32,8 +32,14 @@ jobs:
         conan install . --output=deps --build=missing --settings=build_type=${{env.BUILD_TYPE}}
           
     - name: Configure CMake
-      working-directory: ${{github.workspace}}
-      run: cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_PREFIX_PATH=deps
+      uses: threeal/cmake-action@v1.3.0
+      with:
+        source-dir: ${{github.workspace}}
+        build-dir: ${{github.workspace}}/build
+        generator: Ninja
+        c-compiler: gcc
+        cxx-compiler: g++
+        options: CMAKE_PREFIX_PATH=${{github.workspace}}/deps
 
     - name: Build
       # Build your program with the given configuration
